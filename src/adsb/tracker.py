@@ -37,6 +37,7 @@ class Vehicle:
         if isinstance(adsb.data, AirbornePosition):
             adsb.data.prev = self.last_position
             lat, lon = adsb.data.position()
+            self.last_position = adsb.data
             if lat is not None and lon is not None:
                 self.lat, self.lon = lat, lon
 
@@ -51,7 +52,7 @@ class Vehicle:
             speed = f'{speed:.2f}'
         if heading is not None:
             heading = f'{heading:.2f}'
-        print(f'icao={self.icao}: lat={lat} lon={lon} speed={speed} heading={heading}')
+        return f'icao={self.icao}: lat={lat} lon={lon} speed={speed} heading={heading}'
 
 class Tracker:
     def __init__(self):
