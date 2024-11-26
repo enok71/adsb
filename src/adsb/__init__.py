@@ -12,5 +12,6 @@ Written in pure Python 3.
 """
 __version__ = '0.0.1'
 
-from .adsb import Adsb
+from .adsb import (Adsb, AircraftId, SurfacePosition, AirbornePosition, AirborneVelocities, AircraftStatus,
+                   TargetStateStatus, AircraftOperationStatus, Unknown, AdsbData)
 from .tracker import Tracker

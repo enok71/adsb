@@ -10,7 +10,6 @@
 Contains ADSB message and data classes
 """
 
-import sys
 from typing import Optional
 import math
 
@@ -67,13 +66,13 @@ class AircraftId(AdsbData):
 class SurfacePosition(AdsbData):
     def __init__(self, data: bytes):
         super().__init__(data[0] >> 3)
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def __str__(self):
         return f'{self.__class__.__name__}(tc={self.tc})'
 
     def encode(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     @staticmethod
     def parse(data: bytes):
@@ -81,7 +80,7 @@ class SurfacePosition(AdsbData):
         :param data: data bytes
         :return: SurfacePosition object, or None if parsing fails
         """
-        raise NotImplemented()
+        raise NotImplementedError()
 
 class AirbornePosition(AdsbData):
     def __init__(self, tc, ss, saf, alt, t, f, lat, lon):
@@ -103,16 +102,18 @@ class AirbornePosition(AdsbData):
         from math import pi, acos, cos, floor
         return floor(2*pi/acos(1-(1-cos(pi/(2*cls.NZ)))/cos(pi/180*lat)**2))
 
-    def position(self):
-        if not self.prev:
+    def position(self, last_position=None):
+        if not last_position:
+            last_position = self.prev
+        if not last_position:
             return None, None  # No previous message available
-        if self.f + self.prev.f != 1:
+        if self.f + last_position.f != 1:
             return None, None  # Must have one even and one odd position
         if self.f:
             odd = self
-            even = self.prev
+            even = last_position
         else:
-            odd = self.prev
+            odd = last_position
             even = self
 
         dlat_even = 360./(4*self.NZ)
@@ -172,7 +173,7 @@ class AirbornePosition(AdsbData):
         return s+')'
 
     def encode(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     @staticmethod
     def parse(data: bytes):
@@ -248,6 +249,12 @@ class AirborneVelocities(AdsbData):
                 return None  # No information available
             return self.hdg * 360/1024.
 
+    def altitude_rate(self):
+        """Return altitude rate in knots, or None if not available"""
+        if self.vr == 0:
+            return None  # No info available
+        return (self.vr - 1)*64*-1**self.svr
+
     def __str__(self):
         s = f'{self.__class__.__name__}(st={self.st}, ic={self.ic}, ifr={self.ifr}'
         s += f', nuc={self.nuc}, vrsrc={self.vrsrc}, svr={self.svr}, vr={self.vr}, sdif={self.sdif}, dalt={self.dalt}'
@@ -259,7 +266,7 @@ class AirborneVelocities(AdsbData):
         return s + ')'
 
     def encode(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     @staticmethod
     def parse(data: bytes):
@@ -302,13 +309,13 @@ class AirborneVelocities(AdsbData):
 class AircraftStatus(AdsbData):
     def __init__(self, data: bytes):
         super().__init__(data[0] >> 3)
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def __str__(self):
         return f'{self.__class__.__name__}(tc={self.tc})'
 
     def encode(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     @staticmethod
     def parse(data: bytes):
@@ -316,19 +323,19 @@ class AircraftStatus(AdsbData):
         :param data: data bytes
         :return: AircraftStatus object, or None if parsing fails
         """
-        raise NotImplemented()
+        raise NotImplementedError()
 
 
 class TargetStateStatus(AdsbData):
     def __init__(self, data: bytes):
         super().__init__(data[0] >> 3)
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def __str__(self):
         return f'{self.__class__.__name__}(tc={self.tc})'
 
     def encode(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     @staticmethod
     def parse(data: bytes):
@@ -336,7 +343,7 @@ class TargetStateStatus(AdsbData):
         :param data: data bytes
         :return: TargetStateStatus object, or None if parsing fails
         """
-        raise NotImplemented()
+        raise NotImplementedError()
 
 
 class AircraftOperationStatus(AdsbData):
@@ -380,7 +387,7 @@ class AircraftOperationStatus(AdsbData):
             return s+')'
 
     def encode(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     @staticmethod
     def parse(data: bytes):
@@ -500,11 +507,11 @@ class Adsb:
         :param msg: message bytes (112 bits)
         :return: Adsb object, or None if parsing fails
         """
-        crc = adsb_crc(msg)
-        assert crc==0, 'Bad CRC'
+        if adsb_crc(msg):
+            return None  # Bad CRC
         df = msg[0] >> 3
         if df != Adsb.DF:
-            return None
+            return None  # Not an ADS-B message
         ca = msg[0] & 0x7
         icao = int.from_bytes(msg[1:4], byteorder='big', signed=False)
         data = msg[4:]
@@ -512,7 +519,8 @@ class Adsb:
         data_cls = Adsb.TC[tc]
         try:
             data_obj = data_cls.parse(data)
+            if data_obj is None:
+                data_obj = Unknown.parse(data)
         except NotImplementedError:
-            sys.stderr.write(f'Unable to parse {data_cls.__name__}')
             data_obj = Unknown.parse(data)
         return Adsb(ca, icao, data_obj)
