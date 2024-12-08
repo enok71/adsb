@@ -1,6 +1,6 @@
 [project]
 name = "pyadsb"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
   { name="Oskar Enoksson", email="enok@lysator.liu.se" },
 ]
@@ -14,8 +14,8 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-license = { file = "LICENSE" }
-keywords = [ "adsb", "aircrafts" ]
+license = { text = "MIT" }
+keywords = [ "adsb", "aircraft", "mode-s" ]
 
 [project.urls]
 Homepage = "https://github.com/enok71/adsb"
