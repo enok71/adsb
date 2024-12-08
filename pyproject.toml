@@ -1,7 +1,10 @@
 [project]
 name = "pyadsb"
-version = "0.0.2"
+dynamic = [ "version" ]
 authors = [
+  { name="Oskar Enoksson", email="enok@lysator.liu.se" },
+]
+maintainers = [
   { name="Oskar Enoksson", email="enok@lysator.liu.se" },
 ]
 description = "Functionality for encoding/decoding ADSB messages written in pure Python 3"
@@ -13,9 +16,9 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3.8",
     "Topic :: Software Development :: Libraries :: Python Modules",
+    "Development Status :: 3 - Alpha",
 ]
-license = { text = "MIT" }
-keywords = [ "adsb", "aircraft", "mode-s" ]
+keywords = [ "adsb", "ads-b", "aircraft", "mode-s" ]
 
 [project.urls]
 Homepage = "https://github.com/enok71/adsb"
@@ -25,3 +28,6 @@ Documentation = "https://github.com/enok71/adsb/wiki"
 [build-system]
 requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = [ "src" ]
